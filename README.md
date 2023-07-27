@@ -36,11 +36,11 @@ The recommended build command below is built accordingly.
 You can change the optimization level as you wish.
 `-O0` is recommended for debugging.
 If you're using it to get the most up-to-date compiler in the main branch, you can still use `-O0` to get the fastest build time, but it may also result in a JuleC build with a higher transpilation time.
-But in the general scenario you wait less time than you would expect for the `-Ofast` optimization level.
+But in the general scenario you wait less time than you would expect for the `-O3` optimization level.
 
-Recommented compile command:
+Recommended compile command:
 ```
-clang++ -Ofast -Wno-everything --std=c++17 <ir>.cpp
+clang++ -O3 -Wno-everything --std=c++17 <ir>.cpp
 ```
 
 Note that if you want to use the build you received as JuleC after the compilation phase, you have to place it in the `bin` directory in the home directory.
