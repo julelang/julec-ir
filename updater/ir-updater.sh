@@ -17,4 +17,4 @@ fi
 
 echo "Cleaning..."
 
-rmdir -rf ir_updater
+rm -rf ir_updater
