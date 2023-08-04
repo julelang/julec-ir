@@ -7,6 +7,7 @@ To perform the process you need to compile and execute the IR updater with a Jul
 
 ## Notice
 
+- IR updater should executed at root directory of Jule repository.
 - Your git settings should be set. A commit will be made with your profile.
 - You must have write permission on this repository.
 
