@@ -29,7 +29,7 @@ If you want a different directory, you need to change the include directories of
 
 Of course you need a C++ compiler to compile the IR code.
 At this point it is recommended to use one of the officially supported compilers.
-You can check [related manual page](https://manual.jule.dev/compiler/compiling.html#compiler-and-c-standard-support) for more details.
+You can check [related manual page](https://manual.jule.dev/compiler/backend.html) for more details.
 
 We recommend compiling JuleC's IR codes with Clang and C++17.
 The recommended build command below is built accordingly.
