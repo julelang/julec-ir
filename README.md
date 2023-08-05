@@ -29,7 +29,7 @@ If you want a different directory, you need to change the include directories of
 
 Of course you need a C++ compiler to compile the IR code.
 At this point it is recommended to use one of the officially supported compilers.
-You can check [related manual page](https://manual.jule.dev/compiler/backend.html) for more details.
+You can check [relavant manual page](https://manual.jule.dev/compiler/backend.html) for more details.
 
 We recommend compiling JuleC's IR codes with Clang and C++17.
 The recommended build command below is built accordingly.
@@ -43,9 +43,9 @@ Recommended compile command:
 clang++ -O3 -Wno-everything --std=c++17 <ir>.cpp
 ```
 
-Note that if you want to use the build you received as JuleC after the compilation phase, you have to place it in the `bin` directory in the home directory.
+Note that if you want to use the build you received as JuleC after the compilation phase, you have to place it in the `bin` directory in the root directory.
 Simply review any JuleC release to understand the relevant positioning.
-You can easily see the `bin` directory in the main directory.
+You can easily see the `bin` directory in the root directory.
 
 ## License
 
