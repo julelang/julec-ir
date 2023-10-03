@@ -4,7 +4,7 @@
 
 use std::process::{exit}
 use std::env::{EnvError, set_working_dir}
-use std::fs::{FsError, OFlag, Seek, File, open, read_file, remove_file}
+use std::fs::{FsError, OFlag, Seek, File}
 use std::jule::build::{Os, Arch}
 
 cpp type char: byte
@@ -74,7 +74,7 @@ fn str_repeat(sub: str, mut n: int): str {
 }
 
 fn update_include_paths(x: str) {
-	let (mut f, err) = open(x, OFlag.Rdwr, 0o660)
+	let (mut f, err) = File.open(x, OFlag.Rdwr, 0o660)
 	if err != FsError.Ok {
 		outln("file cannot open: " + x)
 		exit(1)
@@ -158,12 +158,12 @@ fn cleanup() {
 
 fn get_last_commit_hash(): str {
 	system_e(`git rev-parse HEAD > output.txt`)
-	let (bytes, e) = read_file("output.txt")
+	let (bytes, e) = File.read("output.txt")
 	if e != FsError.Ok {
 		outln("commit has cannot readed")
 		exit(1)
 	}
-	_ = remove_file("output.txt")
+	_ = File.remove("output.txt")
 	ret str(bytes).rtrim("\n\t\r\b\v ")
 }
 
@@ -175,7 +175,7 @@ fn update_readme_commit() {
 	const URL_TREE = `https://github.com/julelang/jule/tree/`
 	const README_PATH = `./julec-ir/README.md`
 
-	let (mut f, err) = open(README_PATH, OFlag.Rdwr, 0o660)
+	let (mut f, err) = File.open(README_PATH, OFlag.Rdwr, 0o660)
 	if err != FsError.Ok {
 		outln("file cannot open: " + README_PATH)
 		exit(1)
