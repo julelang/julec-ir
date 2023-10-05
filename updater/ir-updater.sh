@@ -9,12 +9,13 @@ julec -o ir_updater/updater ir_updater
 
 ./ir_updater/updater
 
+echo "Cleaning..."
+rm -rf ir_updater
+
 if [ $? -eq 0 ]; then
     echo "IRs updated successfully"
+    exit 0
 else
     echo "Some problem(s) occurred when IRs updating"
+    exit 1
 fi
-
-echo "Cleaning..."
-
-rm -rf ir_updater
