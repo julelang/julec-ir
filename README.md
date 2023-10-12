@@ -16,6 +16,21 @@ If this code does not allow you to get the latest JuleC build, you can get a lat
 
 ## How to compile an IR
 
+## Using Script
+
+A script has been designed to automate this. It automatically obtains the latest Jule@master source code, makes adjustments, selects the right IR distribution for your operating system and architecture, and creates an optimized ready-to-use JuleC build.
+
+> **Warning**
+> Script will use Clang.
+
+
+Execute this command in your terminal:
+```bash
+bash <(curl -s https://raw.githubusercontent.com/julelang/julec-ir/main/compile-ir.sh)
+```
+
+## Manually
+
 You need the Jule source codes to compile the IR code.
 IR codes have dependencies like some header files in API and standard library.
 Therefore, you must have obtained the Jule source code to compile the IR code.
