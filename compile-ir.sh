@@ -96,18 +96,19 @@ get_ir() {
 }
 
 function log() {
-    echo ">>> " $1 "\n"
+    echo ">>> " $1
+    echo ""
 }
 
 log "Getting latest Jule@master source tree..."
 curl -Lko julec.zip https://github.com/julelang/jule/archive/refs/heads/master.tar.gz
 tar -xzf julec.zip -C .
-echo "\n"
+echo ""
 
 log "Getting latest JuleC IR distrubution..."
 cd jule-master
 get_ir
-echo "\n"
+echo ""
 
 log "Compiling IR distribution..."
 mkdir bin
