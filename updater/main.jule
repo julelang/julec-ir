@@ -125,7 +125,7 @@ fn generate_irs() {
 		let x = str(dist.os) + "-" + str(dist.arch)
 		let xp = `./dist/` + x + `.cpp`
 
-		let mut cmd = PATH_JULEC + " -t "
+		let mut cmd = PATH_JULEC + " -t --opt L1 "
 		cmd += "--target " + x + " "
 		cmd += PATH_PACKAGE
 
