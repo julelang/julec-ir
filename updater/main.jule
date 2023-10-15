@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 
 use std::process::{exit}
-use std::env::{EnvError, set_working_dir}
+use std::env::{set_working_dir}
 use std::fs::{FsError, OFlag, Seek, File}
 use std::jule::build::{Os, Arch}
 
@@ -204,8 +204,7 @@ fn update_readme_commit() {
 }
 
 fn push_changes() {
-	let mut err = set_working_dir("julec-ir")
-	if err != EnvError.Ok {
+	set_working_dir("julec-ir") else {
 		outln("working path cannot changed")
 		exit(1)
 	}
@@ -214,8 +213,7 @@ fn push_changes() {
 	system_e(`git commit -am "update IRs to commit: ` + LATEST_HASH + `" || true`)
 	system_e(`git push || true`)
 
-	err = set_working_dir("..")
-	if err != EnvError.Ok {
+	set_working_dir("..") else {
 		outln("working path cannot changed")
 		exit(1)
 	}
