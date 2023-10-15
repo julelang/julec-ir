@@ -21,7 +21,7 @@ function get_arch() {
         return $arch_amd64
     elif [[ $arch == i*86 ]]; then
         return $arch_i386
-    elif  [[ $arch == arm64* ]]; then
+    elif  [[ $arch == arm64* || $arch == aarch64* ]]; then
         return $arch_arm64
     else
         return $unknown
