@@ -15,216 +15,216 @@ struct Dist {os: Os; arch: Arch}
 static mut LATEST_HASH: str = ""
 
 static DISTS: [...]Dist = [
-	// Windows
-	{os: Os.Windows, arch: Arch.Amd64},
-	{os: Os.Windows, arch: Arch.I386},
-	{os: Os.Windows, arch: Arch.Arm64},
+    // Windows
+    {os: Os.Windows, arch: Arch.Amd64},
+    {os: Os.Windows, arch: Arch.I386},
+    {os: Os.Windows, arch: Arch.Arm64},
 
-	// Linux
-	{os: Os.Linux, arch: Arch.Amd64},
-	{os: Os.Linux, arch: Arch.I386},
-	{os: Os.Linux, arch: Arch.Arm64},
+    // Linux
+    {os: Os.Linux, arch: Arch.Amd64},
+    {os: Os.Linux, arch: Arch.I386},
+    {os: Os.Linux, arch: Arch.Arm64},
 
-	// Darwin
-	{os: Os.Darwin, arch: Arch.Amd64},
-	{os: Os.Darwin, arch: Arch.Arm64},
+    // Darwin
+    {os: Os.Darwin, arch: Arch.Amd64},
+    {os: Os.Darwin, arch: Arch.Arm64},
 ]
 
 fn system(cmd: str): int {
-	ret unsafe { cpp.system((*cpp.char)(&cmd[0])) }
+    ret unsafe { cpp.system((*cpp.char)(&cmd[0])) }
 }
 
 // Calls "system" and exits program if returns non-zero.
 fn system_e(cmd: str) {
-	const EXIT_CODE = 1
+    const EXIT_CODE = 1
 
-	if system(cmd) != 0 {
-		exit(EXIT_CODE)
-	}
+    if system(cmd) != 0 {
+        exit(EXIT_CODE)
+    }
 }
 
 fn read_line_from_file(mut &f: &File): str {
-	let mut line = make([]byte, 0, 100)
-	let mut b: []byte = [0]
-	for b[0] != '\n' {
-		let (n, err) = f.read(b)
-		if err != FsError.Ok {
-			outln("file cannot read")
-			exit(1)
-		}
-		if n == 0 {
-			break
-		}
-		line = append(line, b...)
-	}
-	ret str(line).rtrim("\b\r\t\n\v ")
+    let mut line = make([]byte, 0, 100)
+    let mut b: []byte = [0]
+    for b[0] != '\n' {
+        let n = f.read(b) else {
+            outln("file cannot read")
+            exit(1)
+            use 0 // Avoid error.
+        }
+        if n == 0 {
+            break
+        }
+        line = append(line, b...)
+    }
+    ret str(line).rtrim("\b\r\t\n\v ")
 }
 
 // Returns N-time repeated value of substring.
 fn str_repeat(sub: str, mut n: int): str {
-	if n == 0 {
-		ret ""
-	}
+    if n == 0 {
+        ret ""
+    }
 
-	let mut s = ""
-	for n > 0; n-- {
-		s += sub
-	}
-	ret s
+    let mut s = ""
+    for n > 0; n-- {
+        s += sub
+    }
+    ret s
 }
 
 fn update_include_paths(x: str) {
-	let (mut f, err) = File.open(x, OFlag.Rdwr, 0o660)
-	if err != FsError.Ok {
-		outln("file cannot open: " + x)
-		exit(1)
-	}
+    let mut f = File.open(x, OFlag.Rdwr, 0o660) else {
+        outln("file cannot open: " + x)
+        exit(1)
+        ret // Avoid error.
+    }
 
-	defer { f.close() }
+    defer { f.close()! }
 
-	let mut include_saw = false
-	for {
-		let mut line = read_line_from_file(f)
-		if line.len == 0 {
-			continue
-		}
+    let mut include_saw = false
+    for {
+        let mut line = read_line_from_file(f)
+        if line.len == 0 {
+            continue
+        }
 
-		if line.has_prefix(`#include <`) {
-			continue
-		}
-		if !line.has_prefix(`#include "`) {
-			if include_saw {
-				break
-			}
-			continue
-		}
-		include_saw = true
+        if line.has_prefix(`#include <`) {
+            continue
+        }
+        if !line.has_prefix(`#include "`) {
+            if include_saw {
+                break
+            }
+            continue
+        }
+        include_saw = true
 
-		f.seek(-line.len-1, Seek.Cur)
+        f.seek(-line.len-1, Seek.Cur)!
 
-		let line_len = line.len
+        let line_len = line.len
 
-		const SEARCH_SUBS = "/jule/"
-		let pos = line.find(SEARCH_SUBS)
+        const SEARCH_SUBS = "/jule/"
+        let pos = line.find(SEARCH_SUBS)
 
-		// Remove root directories.
-		line = line[pos+SEARCH_SUBS.len:]
-		line = `#include "` + line
-		line += str_repeat(" ", line_len-line.len)
-		line += "\n"
+        // Remove root directories.
+        line = line[pos+SEARCH_SUBS.len:]
+        line = `#include "` + line
+        line += str_repeat(" ", line_len-line.len)
+        line += "\n"
 
-		f.write(([]byte)(line))
-	}
+        f.write(([]byte)(line))!
+    }
 }
 
 fn generate_irs() {
-	const PATH_JULEC = "./bin/julec"
-	const PATH_PACKAGE = "./src/julec"
+    const PATH_JULEC = "./bin/julec"
+    const PATH_PACKAGE = "./src/julec"
 
-	for _, dist in DISTS {
-		let x = str(dist.os) + "-" + str(dist.arch)
-		let xp = `./dist/` + x + `.cpp`
+    for _, dist in DISTS {
+        let x = str(dist.os) + "-" + str(dist.arch)
+        let xp = `./dist/` + x + `.cpp`
 
-		let mut cmd = PATH_JULEC + " -t --opt L1 "
-		cmd += "--target " + x + " "
-		cmd += PATH_PACKAGE
+        let mut cmd = PATH_JULEC + " -t --opt L1 "
+        cmd += "--target " + x + " "
+        cmd += PATH_PACKAGE
 
-		system_e(cmd)
-		system_e(`mv ./dist/ir.cpp ` + xp)
-		update_include_paths(xp)
-	}
+        system_e(cmd)
+        system_e(`mv ./dist/ir.cpp ` + xp)
+        update_include_paths(xp)
+    }
 }
 
 fn setup_julec_ir() {
-	const URL = "https://github.com/julelang/julec-ir"
-	system_e("git clone --depth 1 " + URL) // Clone JuleC-IR repository.
-	system_e("rm -rf julec-ir/src") // Remove sources.
-	system_e("mkdir julec-ir/src") // Create new source directory.
+    const URL = "https://github.com/julelang/julec-ir"
+    system_e("git clone --depth 1 " + URL) // Clone JuleC-IR repository.
+    system_e("rm -rf julec-ir/src") // Remove sources.
+    system_e("mkdir julec-ir/src") // Create new source directory.
 }
 
 fn move_irs_into_julec_ir() {
-	for _, dist in DISTS {
-		let x = str(dist.os) + "-" + str(dist.arch)
-		let xp = x + `.cpp`
+    for _, dist in DISTS {
+        let x = str(dist.os) + "-" + str(dist.arch)
+        let xp = x + `.cpp`
 
-		system_e(`mv ./dist/` + xp + ` ./julec-ir/src/` + xp)
-	}
+        system_e(`mv ./dist/` + xp + ` ./julec-ir/src/` + xp)
+    }
 }
 
 fn cleanup() {
-	system_e("rm -rf ./dist") // Remove dist directory.
-	system_e("rm -rf ./julec-ir") // Remove JuleC-IR clone.
+    system_e("rm -rf ./dist") // Remove dist directory.
+    system_e("rm -rf ./julec-ir") // Remove JuleC-IR clone.
 }
 
 fn get_last_commit_hash(): str {
-	system_e(`git rev-parse HEAD > output.txt`)
-	let (bytes, e) = File.read("output.txt")
-	if e != FsError.Ok {
-		outln("commit has cannot readed")
-		exit(1)
-	}
-	_ = File.remove("output.txt")
-	ret str(bytes).rtrim("\n\t\r\b\v ")
+    system_e(`git rev-parse HEAD > output.txt`)
+    let bytes = File.read("output.txt") else {
+        outln("commit has cannot readed")
+        exit(1)
+        use nil // Avoid error.
+    }
+    File.remove("output.txt")!
+    ret str(bytes).rtrim("\n\t\r\b\v ")
 }
 
 fn set_latest_hash() {
-	LATEST_HASH = get_last_commit_hash()
+    LATEST_HASH = get_last_commit_hash()
 }
 
 fn update_readme_commit() {
-	const URL_TREE = `https://github.com/julelang/jule/tree/`
-	const README_PATH = `./julec-ir/README.md`
+    const URL_TREE = `https://github.com/julelang/jule/tree/`
+    const README_PATH = `./julec-ir/README.md`
 
-	let (mut f, err) = File.open(README_PATH, OFlag.Rdwr, 0o660)
-	if err != FsError.Ok {
-		outln("file cannot open: " + README_PATH)
-		exit(1)
-	}
+    let mut f = File.open(README_PATH, OFlag.Rdwr, 0o660) else {
+        outln("file cannot open: " + README_PATH)
+        exit(1)
+        ret // Avoid error.
+    }
 
-	defer { f.close() }
+    defer { f.close()! }
 
-	for {
-		let mut line = read_line_from_file(f)
-		if !line.has_prefix(`IR version: [`) {
-			continue
-		}
+    for {
+        let mut line = read_line_from_file(f)
+        if !line.has_prefix(`IR version: [`) {
+            continue
+        }
 
-		f.seek(-line.len-1, Seek.Cur)
+        f.seek(-line.len-1, Seek.Cur)!
 
-		let line_len = line.len
+        let line_len = line.len
 
-		let commit_hash = LATEST_HASH
-		line = "IR version: [`" + commit_hash[:10] + "`](" + URL_TREE + commit_hash + ")"
-		line += str_repeat(" ", line_len-line.len)
-		line += "\n"
+        let commit_hash = LATEST_HASH
+        line = "IR version: [`" + commit_hash[:10] + "`](" + URL_TREE + commit_hash + ")"
+        line += str_repeat(" ", line_len-line.len)
+        line += "\n"
 
-		f.write(([]byte)(line))
-		break
-	}
+        f.write(([]byte)(line))!
+        break
+    }
 }
 
 fn push_changes() {
-	set_working_dir("julec-ir") else {
-		outln("working path cannot changed")
-		exit(1)
-	}
+    set_working_dir("julec-ir") else {
+        outln("working path cannot changed")
+        exit(1)
+    }
 
-	system_e(`git add . || true`)
-	system_e(`git commit -am "update IRs to commit: ` + LATEST_HASH + `" || true`)
-	system_e(`git push || true`)
+    system_e(`git add . || true`)
+    system_e(`git commit -am "update IRs to commit: ` + LATEST_HASH + `" || true`)
+    system_e(`git push || true`)
 
-	set_working_dir("..") else {
-		outln("working path cannot changed")
-		exit(1)
-	}
+    set_working_dir("..") else {
+        outln("working path cannot changed")
+        exit(1)
+    }
 }
 
 fn main() {
-	set_latest_hash()
-	generate_irs()
-	setup_julec_ir()
-	move_irs_into_julec_ir()
-	update_readme_commit()
-	push_changes()
-	cleanup()
+    set_latest_hash()
+    generate_irs()
+    setup_julec_ir()
+    move_irs_into_julec_ir()
+    update_readme_commit()
+    push_changes()
+    cleanup()
 }
