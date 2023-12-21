@@ -6,6 +6,7 @@ use std::process::{exit}
 use std::env::{set_working_dir}
 use std::fs::{FsError, OFlag, Seek, File}
 use std::jule::build::{Os, Arch}
+use strings for std::strings
 
 cpp type char: byte
 cpp fn system(cmd: *cpp.char): int
@@ -57,20 +58,7 @@ fn read_line_from_file(mut &f: &File): str {
         }
         line = append(line, b...)
     }
-    ret str(line).rtrim("\b\r\t\n\v ")
-}
-
-// Returns N-time repeated value of substring.
-fn str_repeat(sub: str, mut n: int): str {
-    if n == 0 {
-        ret ""
-    }
-
-    let mut s = ""
-    for n > 0; n-- {
-        s += sub
-    }
-    ret s
+    ret strings::trim_right(str(line), "\b\r\t\n\v ")
 }
 
 fn update_include_paths(x: str) {
@@ -89,10 +77,10 @@ fn update_include_paths(x: str) {
             continue
         }
 
-        if line.has_prefix(`#include <`) {
+        if strings::has_prefix(line, `#include <`) {
             continue
         }
-        if !line.has_prefix(`#include "`) {
+        if !strings::has_prefix(line, `#include "`) {
             if include_saw {
                 break
             }
@@ -105,12 +93,12 @@ fn update_include_paths(x: str) {
         let line_len = line.len
 
         const SEARCH_SUBS = "/jule/"
-        let pos = line.find(SEARCH_SUBS)
+        let pos = strings::find(line, SEARCH_SUBS)
 
         // Remove root directories.
         line = line[pos+SEARCH_SUBS.len:]
         line = `#include "` + line
-        line += str_repeat(" ", line_len-line.len)
+        line += strings::repeat(" ", line_len-line.len)
         line += "\n"
 
         f.write(([]byte)(line))!
@@ -164,7 +152,7 @@ fn get_last_commit_hash(): str {
         use nil // Avoid error.
     }
     File.remove("output.txt")!
-    ret str(bytes).rtrim("\n\t\r\b\v ")
+    ret strings::trim_right(str(bytes), "\n\t\r\b\v ")
 }
 
 fn set_latest_hash() {
@@ -185,7 +173,7 @@ fn update_readme_commit() {
 
     for {
         let mut line = read_line_from_file(f)
-        if !line.has_prefix(`IR version: [`) {
+        if !strings::has_prefix(line, `IR version: [`) {
             continue
         }
 
@@ -195,7 +183,7 @@ fn update_readme_commit() {
 
         let commit_hash = LATEST_HASH
         line = "IR version: [`" + commit_hash[:10] + "`](" + URL_TREE + commit_hash + ")"
-        line += str_repeat(" ", line_len-line.len)
+        line += strings::repeat(" ", line_len-line.len)
         line += "\n"
 
         f.write(([]byte)(line))!
