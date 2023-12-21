@@ -70,7 +70,7 @@ fn update_include_paths(x: str) {
 
     defer { f.close()! }
 
-    let mut include_saw = false
+    let mut include_saw = 0
     for {
         let mut line = read_line_from_file(f)
         if line.len == 0 {
@@ -81,12 +81,13 @@ fn update_include_paths(x: str) {
             continue
         }
         if !strings::has_prefix(line, `#include "`) {
-            if include_saw {
+            if include_saw == 2 {
                 break
             }
             continue
+        } else if include_saw < 2 {
+            include_saw++
         }
-        include_saw = true
 
         f.seek(-line.len-1, Seek.Cur)!
 
