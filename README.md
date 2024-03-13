@@ -1,6 +1,6 @@
 # Julec IR
 
-IR version: [`55233eb302`](https://github.com/julelang/jule/tree/55233eb30282a15a8134046941224a87b0f33e5d)
+IR version: [`ab9c72a15b`](https://github.com/julelang/jule/tree/ab9c72a15bdbda16e8521b58bc0683bf5b2a54e9)
 
 This repository contains the platform-specific C++ IR code of JuleC, the reference compiler of [the Jule programming language](https://github.com/julelang/jule), that was created by leveraging JuleC's cross-transpile feature.
 When you are unable to compile the JuleC's new major branch codes with an existing JuleC build, when you want to get a JuleC build from IR code, when you want to examine the IRs created by JuleC, or for a different purpose, you can consider using C++ IR codes.
