@@ -1,4 +1,4 @@
-// Copyright 2023 The Jule Programming Language.
+// Copyright 2023-2024 The Jule Programming Language.
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
@@ -75,7 +75,7 @@ fn updateIncludePaths(x: str) {
     let mut includeSaw = 0
     for {
         let mut line = readLineFromFile(f)
-        if line.len == 0 {
+        if len(line) == 0 {
             continue
         }
 
@@ -91,17 +91,17 @@ fn updateIncludePaths(x: str) {
             includeSaw++
         }
 
-        f.Seek(-line.len-1, Seek.Cur)!
+        f.Seek(-len(line)-1, Seek.Cur)!
 
-        let lineLen = line.len
+        let lineLen = len(line)
 
         const SearchSubs = "/jule/"
         let pos = strings::Find(line, SearchSubs)
 
         // Remove root directories.
-        line = line[pos+SearchSubs.len:]
+        line = line[pos+len(SearchSubs):]
         line = `#include "` + line
-        line += strings::Repeat(" ", lineLen-line.len)
+        line += strings::Repeat(" ", lineLen-len(line))
         line += "\n"
 
         f.Write(([]byte)(line))!
@@ -179,13 +179,13 @@ fn updateReadmeCommit() {
             continue
         }
 
-        f.Seek(-line.len-1, Seek.Cur)!
+        f.Seek(-len(line)-1, Seek.Cur)!
 
-        let lineLen = line.len
+        let lineLen = len(line)
 
         let commitHash = LatestHash
         line = "IR version: [`" + commitHash[:10] + "`](" + UrlTree + commitHash + ")"
-        line += strings::Repeat(" ", lineLen-line.len)
+        line += strings::Repeat(" ", lineLen-len(line))
         line += "\n"
 
         f.Write(([]byte)(line))!
