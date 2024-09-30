@@ -2,11 +2,11 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
-use process for std::process
-use env for std::env
-use fs for std::fs
-use build for std::jule::build
-use strings for std::strings
+use "std/env"
+use "std/fs"
+use "std/jule/build"
+use "std/process"
+use "std/strings"
 
 cpp type char: byte
 
