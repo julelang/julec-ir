@@ -52,7 +52,7 @@ fn readLineFromFile(mut &f: &fs::File): str {
 	let mut b: []byte = [0]
 	for b[0] != '\n' {
 		let n = f.Read(b) else {
-			outln("file cannot read")
+			println("file cannot read")
 			process::Exit(1)
 			use 0 // Avoid error.
 		}
@@ -66,7 +66,7 @@ fn readLineFromFile(mut &f: &fs::File): str {
 
 fn updateIncludePaths(x: str) {
 	let mut f = fs::File.Open(x, fs::OFlag.Rdwr, 0o660) else {
-		outln("file cannot open: " + x)
+		println("file cannot open: " + x)
 		process::Exit(1)
 		ret // Avoid error.
 	}
@@ -149,7 +149,7 @@ fn cleanup() {
 fn getLastCommitHash(): str {
 	systemE(`git rev-parse HEAD > output.txt`)
 	let bytes = fs::File.Read("output.txt") else {
-		outln("commit has cannot readed")
+		println("commit has cannot readed")
 		process::Exit(1)
 		use nil // Avoid error.
 	}
@@ -166,7 +166,7 @@ fn updateReadmeCommit() {
 	const ReadmePath = `./julec-ir/README.md`
 
 	let mut f = fs::File.Open(ReadmePath, fs::OFlag.Rdwr, 0o660) else {
-		outln("file cannot open: " + ReadmePath)
+		println("file cannot open: " + ReadmePath)
 		process::Exit(1)
 		ret // Avoid error.
 	}
@@ -194,7 +194,7 @@ fn updateReadmeCommit() {
 
 fn pushChanges() {
 	env::SetWorkingDir("julec-ir") else {
-		outln("working path cannot changed")
+		println("working path cannot changed")
 		process::Exit(1)
 	}
 
@@ -203,7 +203,7 @@ fn pushChanges() {
 	systemE(`git push || true`)
 
 	env::SetWorkingDir("..") else {
-		outln("working path cannot changed")
+		println("working path cannot changed")
 		process::Exit(1)
 	}
 }
