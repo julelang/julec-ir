@@ -71,8 +71,6 @@ fn updateIncludePaths(x: str) {
 		ret // Avoid error.
 	}
 
-	defer { f.Close()! }
-
 	let mut includeSaw = 0
 	for {
 		let mut line = readLineFromFile(f)
@@ -107,6 +105,7 @@ fn updateIncludePaths(x: str) {
 
 		f.Write(([]byte)(line))!
 	}
+	f.Close()!
 }
 
 fn generateIrs() {
@@ -172,8 +171,6 @@ fn updateReadmeCommit() {
 		ret // Avoid error.
 	}
 
-	defer { f.Close()! }
-
 	for {
 		let mut line = readLineFromFile(f)
 		if !strings::HasPrefix(line, `IR version: [`) {
@@ -192,6 +189,7 @@ fn updateReadmeCommit() {
 		f.Write(([]byte)(line))!
 		break
 	}
+	f.Close()!
 }
 
 fn pushChanges() {
