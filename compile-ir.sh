@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2023 The Jule Programming Language.
+# Copyright 2023-2024 The Jule Programming Language.
 # Use of this source code is governed by a BSD 3-Clause
 # license that can be found in the LICENSE file.
 
@@ -105,7 +105,7 @@ curl -Lko julec.zip https://github.com/julelang/jule/archive/refs/heads/master.t
 tar -xzf julec.zip -C .
 echo ""
 
-log "Getting latest JuleC IR distrubution..."
+log "Getting latest JuleC IR distribution..."
 cd jule-master
 get_ir
 echo ""
