@@ -2,10 +2,8 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
-use "std/env"
-use "std/fs"
 use "std/jule/build"
-use "std/process"
+use "std/os"
 use "std/strings"
 
 cpp type char: byte
@@ -13,7 +11,7 @@ cpp type char: byte
 cpp fn system(cmd: *cpp.char): int
 
 struct Dist {
-	os:   build::DistOs
+	os:   build::DistOS
 	arch: build::DistArch
 }
 
@@ -21,18 +19,18 @@ static mut LatestHash: str = ""
 
 static Dists: [...]Dist = [
 	// Windows
-	{os: build::DistOs.Windows, arch: build::DistArch.Amd64},
-	{os: build::DistOs.Windows, arch: build::DistArch.I386},
-	{os: build::DistOs.Windows, arch: build::DistArch.Arm64},
+	{os: build::DistOS.Windows, arch: build::DistArch.Amd64},
+	{os: build::DistOS.Windows, arch: build::DistArch.I386},
+	{os: build::DistOS.Windows, arch: build::DistArch.Arm64},
 
 	// Linux
-	{os: build::DistOs.Linux, arch: build::DistArch.Amd64},
-	{os: build::DistOs.Linux, arch: build::DistArch.I386},
-	{os: build::DistOs.Linux, arch: build::DistArch.Arm64},
+	{os: build::DistOS.Linux, arch: build::DistArch.Amd64},
+	{os: build::DistOS.Linux, arch: build::DistArch.I386},
+	{os: build::DistOS.Linux, arch: build::DistArch.Arm64},
 
 	// Darwin
-	{os: build::DistOs.Darwin, arch: build::DistArch.Amd64},
-	{os: build::DistOs.Darwin, arch: build::DistArch.Arm64},
+	{os: build::DistOS.Darwin, arch: build::DistArch.Amd64},
+	{os: build::DistOS.Darwin, arch: build::DistArch.Arm64},
 ]
 
 fn system(cmd: str): int {
@@ -43,17 +41,17 @@ fn system(cmd: str): int {
 fn systemE(cmd: str) {
 	const ExitCode = 1
 	if system(cmd) != 0 {
-		process::Exit(ExitCode)
+		os::Exit(ExitCode)
 	}
 }
 
-fn readLineFromFile(mut &f: &fs::File): str {
+fn readLineFromFile(mut &f: &os::File): str {
 	let mut line = make([]byte, 0, 100)
 	let mut b: []byte = [0]
 	for b[0] != '\n' {
 		let n = f.Read(b) else {
 			println("file cannot read")
-			process::Exit(1)
+			os::Exit(1)
 			use 0 // Avoid error.
 		}
 		if n == 0 {
@@ -65,9 +63,9 @@ fn readLineFromFile(mut &f: &fs::File): str {
 }
 
 fn updateIncludePaths(x: str) {
-	let mut f = fs::File.Open(x, fs::OFlag.Rdwr, 0o660) else {
+	let mut f = os::File.Open(x, os::O_RDWR, 0o660) else {
 		println("file cannot open: " + x)
-		process::Exit(1)
+		os::Exit(1)
 		ret // Avoid error.
 	}
 
@@ -90,7 +88,7 @@ fn updateIncludePaths(x: str) {
 			includeSaw++
 		}
 
-		f.Seek(-len(line)-1, fs::Seek.Cur)!
+		f.Seek(-len(line)-1, os::Seek.Cur)!
 
 		let lineLen = len(line)
 
@@ -129,8 +127,8 @@ fn generateIrs() {
 fn setupJulecIr() {
 	const URL = "https://github.com/julelang/julec-ir"
 	systemE("git clone --depth 1 " + URL) // Clone JuleC-IR repository.
-	systemE("rm -rf julec-ir/src") // Remove sources.
-	systemE("mkdir julec-ir/src") // Create new source directory.
+	systemE("rm -rf julec-ir/src")        // Remove sources.
+	systemE("mkdir julec-ir/src")         // Create new source directory.
 }
 
 fn moveIrsIntoJulecIr() {
@@ -142,18 +140,18 @@ fn moveIrsIntoJulecIr() {
 }
 
 fn cleanup() {
-	systemE("rm -rf ./dist") // Remove dist directory.
+	systemE("rm -rf ./dist")     // Remove dist directory.
 	systemE("rm -rf ./julec-ir") // Remove JuleC-IR clone.
 }
 
 fn getLastCommitHash(): str {
 	systemE(`git rev-parse HEAD > output.txt`)
-	let bytes = fs::File.Read("output.txt") else {
+	let bytes = os::File.Read("output.txt") else {
 		println("commit has cannot readed")
-		process::Exit(1)
+		os::Exit(1)
 		use nil // Avoid error.
 	}
-	fs::File.Remove("output.txt")!
+	os::File.Remove("output.txt")!
 	ret strings::TrimRight(str(bytes), "\n\t\r\b\v ")
 }
 
@@ -165,9 +163,9 @@ fn updateReadmeCommit() {
 	const UrlTree = `https://github.com/julelang/jule/tree/`
 	const ReadmePath = `./julec-ir/README.md`
 
-	let mut f = fs::File.Open(ReadmePath, fs::OFlag.Rdwr, 0o660) else {
+	let mut f = os::File.Open(ReadmePath, os::O_RDWR, 0o660) else {
 		println("file cannot open: " + ReadmePath)
-		process::Exit(1)
+		os::Exit(1)
 		ret // Avoid error.
 	}
 
@@ -177,7 +175,7 @@ fn updateReadmeCommit() {
 			continue
 		}
 
-		f.Seek(-len(line)-1, fs::Seek.Cur)!
+		f.Seek(-len(line)-1, os::Seek.Cur)!
 
 		let lineLen = len(line)
 
@@ -193,18 +191,18 @@ fn updateReadmeCommit() {
 }
 
 fn pushChanges() {
-	env::SetWorkingDir("julec-ir") else {
+	os::Chdir("julec-ir") else {
 		println("working path cannot changed")
-		process::Exit(1)
+		os::Exit(1)
 	}
 
 	systemE(`git add . || true`)
 	systemE(`git commit -am "update IRs to commit: ` + LatestHash + `" || true`)
 	systemE(`git push || true`)
 
-	env::SetWorkingDir("..") else {
+	os::Chdir("..") else {
 		println("working path cannot changed")
-		process::Exit(1)
+		os::Exit(1)
 	}
 }
 
