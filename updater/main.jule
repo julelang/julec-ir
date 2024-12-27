@@ -93,7 +93,7 @@ fn updateIncludePaths(x: str) {
 		let lineLen = len(line)
 
 		const SearchSubs = "/jule/"
-		let pos = strings::Find(line, SearchSubs)
+		let pos = strings::Index(line, SearchSubs)
 
 		// Remove root directories.
 		line = line[pos+len(SearchSubs):]
