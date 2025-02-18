@@ -1,4 +1,4 @@
-// Copyright 2023-2024 The Jule Programming Language.
+// Copyright 2023-2025 The Jule Programming Language.
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
@@ -63,7 +63,7 @@ fn readLineFromFile(mut &f: &os::File): str {
 }
 
 fn updateIncludePaths(x: str) {
-	let mut f = os::File.Open(x, os::O_RDWR, 0o660) else {
+	let mut f = os::OpenFile(x, os::O_RDWR, 0o660) else {
 		println("file cannot open: " + x)
 		os::Exit(1)
 		ret // Avoid error.
@@ -146,12 +146,12 @@ fn cleanup() {
 
 fn getLastCommitHash(): str {
 	systemE(`git rev-parse HEAD > output.txt`)
-	let bytes = os::File.Read("output.txt") else {
+	let bytes = os::ReadFile("output.txt") else {
 		println("commit has cannot readed")
 		os::Exit(1)
 		use nil // Avoid error.
 	}
-	os::File.Remove("output.txt")!
+	os::Remove("output.txt")!
 	ret strings::TrimRight(str(bytes), "\n\t\r\b\v ")
 }
 
@@ -163,7 +163,7 @@ fn updateReadmeCommit() {
 	const UrlTree = `https://github.com/julelang/jule/tree/`
 	const ReadmePath = `./julec-ir/README.md`
 
-	let mut f = os::File.Open(ReadmePath, os::O_RDWR, 0o660) else {
+	let mut f = os::OpenFile(ReadmePath, os::O_RDWR, 0o660) else {
 		println("file cannot open: " + ReadmePath)
 		os::Exit(1)
 		ret // Avoid error.
