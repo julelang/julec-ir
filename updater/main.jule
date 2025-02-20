@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
+use "std/io"
 use "std/jule/build"
 use "std/os"
 use "std/strings"
@@ -88,7 +89,7 @@ fn updateIncludePaths(x: str) {
 			includeSaw++
 		}
 
-		f.Seek(-len(line)-1, os::Seek.Cur)!
+		f.Seek(i64(-len(line))-1, io::SeekCurrent)!
 
 		let lineLen = len(line)
 
@@ -175,7 +176,7 @@ fn updateReadmeCommit() {
 			continue
 		}
 
-		f.Seek(-len(line)-1, os::Seek.Cur)!
+		f.Seek(i64(-len(line))-1, io::SeekCurrent)!
 
 		let lineLen = len(line)
 
