@@ -112,7 +112,7 @@ echo ""
 
 log "Compiling IR distribution..."
 mkdir bin
-clang++ -Wno-everything --std=c++17 -O3 -flto -DNDEBUG -fomit-frame-pointer -o bin/julec $ir_name
+clang++ -Wno-everything -fwrapv --std=c++17 -O3 -flto -DNDEBUG -fomit-frame-pointer -o bin/julec $ir_name
 
 if [[ $? == 0 ]]; then
     echo "Your IR JuleC compilation is read-to-use."
