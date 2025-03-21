@@ -1,8 +1,8 @@
-# Julec IR
+# JuleC IR
 
 IR version: [`7229df7e34`](https://github.com/julelang/jule/tree/7229df7e34816f2047a49aa8ffa222fd746718e3)
 
-[See more information](https://manual.jule.dev/getting-started/install-from-source/compile-from-ir.html)
+[See more information](https://manual.jule.dev/getting-started/installation/compiling-from-source/compile-from-ir)
 
 ## License
 
