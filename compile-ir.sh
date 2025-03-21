@@ -115,7 +115,7 @@ mkdir bin
 clang++ -Wno-everything -fwrapv -ffloat-store --std=c++17 -O3 -fno-strict-aliasing -flto -DNDEBUG -fomit-frame-pointer -o bin/julec $ir_name
 
 if [[ $? == 0 ]]; then
-    echo "Your IR JuleC compilation is read-to-use."
+    echo "Your JuleC IR compilation is ready-to-use."
 else
     echo "Compilation failed."
 fi
