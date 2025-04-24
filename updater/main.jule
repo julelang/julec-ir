@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 
 use "std/io"
-use "std/jule/build"
+use "std/jule/dist"
 use "std/os"
 use "std/strings"
 
@@ -12,26 +12,26 @@ cpp type char: byte
 cpp fn system(cmd: *cpp.char): int
 
 struct Dist {
-	os:   build::DistOS
-	arch: build::DistArch
+	os:   str
+	arch: str
 }
 
 static mut LatestHash: str = ""
 
 static Dists: [...]Dist = [
 	// Windows
-	{os: build::DistOS.Windows, arch: build::DistArch.Amd64},
-	{os: build::DistOS.Windows, arch: build::DistArch.I386},
-	{os: build::DistOS.Windows, arch: build::DistArch.Arm64},
+	{os: dist::Windows, arch: dist::AMD64},
+	{os: dist::Windows, arch: dist::I386},
+	{os: dist::Windows, arch: dist::ARM64},
 
 	// Linux
-	{os: build::DistOS.Linux, arch: build::DistArch.Amd64},
-	{os: build::DistOS.Linux, arch: build::DistArch.I386},
-	{os: build::DistOS.Linux, arch: build::DistArch.Arm64},
+	{os: dist::Linux, arch: dist::AMD64},
+	{os: dist::Linux, arch: dist::I386},
+	{os: dist::Linux, arch: dist::ARM64},
 
 	// Darwin
-	{os: build::DistOS.Darwin, arch: build::DistArch.Amd64},
-	{os: build::DistOS.Darwin, arch: build::DistArch.Arm64},
+	{os: dist::Darwin, arch: dist::AMD64},
+	{os: dist::Darwin, arch: dist::ARM64},
 ]
 
 fn system(cmd: str): int {
