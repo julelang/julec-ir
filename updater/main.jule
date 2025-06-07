@@ -16,9 +16,9 @@ struct Dist {
 	arch: str
 }
 
-static mut LatestHash: str = ""
+let mut LatestHash: str = ""
 
-static Dists: [...]Dist = [
+let Dists: [...]Dist = [
 	// Windows
 	{os: dist::Windows, arch: dist::AMD64},
 	{os: dist::Windows, arch: dist::I386},
