@@ -46,7 +46,7 @@ fn systemE(cmd: str) {
 	}
 }
 
-fn readLineFromFile(mut &f: &os::File): str {
+fn readLineFromFile(mut f: &os::File): str {
 	let mut line = make([]byte, 0, 100)
 	let mut b: []byte = [0]
 	for b[0] != '\n' {
