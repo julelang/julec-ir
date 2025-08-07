@@ -104,7 +104,7 @@ function get_ir_url() {
 
 function get_compile_command() {
 	if [[ $target == "windows-i386" || $target == "windows-amd64" || $target == "windows-arm64" ]]; then
-		ret="clang++ -static -Wno-everything --std=c++17 -fwrapv -ffloat-store -fno-fast-math -fno-rounding-math -ffp-contract=fast -O3 -flto=thin -fuse-ld=lld -DNDEBUG -fomit-frame-pointer -fno-strict-aliasing -o bin/julec.exe ir.cpp -lws2_32 -lshell32"
+		ret="clang++ -static -Wno-everything --std=c++17 -fwrapv -ffloat-store -fno-fast-math -fno-rounding-math -ffp-contract=fast -O3 -flto=thin -fuse-ld=lld -DNDEBUG -fomit-frame-pointer -fno-strict-aliasing -o bin/julec.exe ir.cpp -lws2_32 -lshell32 -liphlpapi"
 	elif [[ $target == "linux-i386" || $target == "linux-amd64" || $target == "linux-arm64" ]]; then
 		ret="clang++ -static -Wno-everything --std=c++17 -fwrapv -ffloat-store -fno-fast-math -fexcess-precision=standard -fno-rounding-math -ffp-contract=fast -O3 -flto=thin -DNDEBUG -fomit-frame-pointer -fno-strict-aliasing -o bin/julec ir.cpp"
 	elif [[ $target == "darwin-amd64" || $target == "darwin-arm64" ]]; then
