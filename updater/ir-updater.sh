@@ -5,7 +5,7 @@
 
 mkdir ir_updater
 curl -o ir_updater/main.jule https://raw.githubusercontent.com/julelang/julec-ir/main/updater/main.jule
-julec -o ir_updater/updater ir_updater
+julec build -o ir_updater/updater ir_updater
 
 ./ir_updater/updater
 
