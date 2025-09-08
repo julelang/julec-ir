@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
-use "std/bufio"
 use "std/io"
 use "std/jule/dist"
 use "std/os"
@@ -31,6 +30,23 @@ let Dists: [...]Dist = [
 	{os: dist::Darwin, arch: dist::ARM64},
 ]
 
+fn readLineFromFile(mut f: &os::File): str {
+	mut line := make([]byte, 0, 100)
+	let mut b: []byte = [0]
+	for b[0] != '\n' {
+		n := f.Read(b) else {
+			println("file cannot read")
+			os::Exit(1)
+			use 0 // Avoid error.
+		}
+		if n == io::EOF || n == 0 {
+			break
+		}
+		line = append(line, b...)
+	}
+	ret strings::TrimRight(str(line), "\b\r\t\n\v ")
+}
+
 fn updateIncludePaths(targetPath: str) {
 	mut f := os::OpenFile(targetPath, os::O_RDWR, 0o660) else {
 		println("file cannot open: " + targetPath)
@@ -38,14 +54,9 @@ fn updateIncludePaths(targetPath: str) {
 		ret // Avoid error.
 	}
 
-	mut scan := bufio::Scanner.New(f)
 	mut includeSaw := 0
 	for {
-		ok := scan.Scan()!
-		if !ok {
-			break
-		}
-		mut line := strings::TrimSpace(scan.Text())
+		mut line := readLineFromFile(f)
 		if len(line) == 0 {
 			continue
 		}
@@ -133,16 +144,8 @@ fn updateReadmeCommit() {
 		ret // Avoid error.
 	}
 
-	mut scan := bufio::Scanner.New(f)
 	for {
-		ok := scan.Scan()!
-		if !ok {
-			break
-		}
-		mut line := strings::TrimSpace(scan.Text())
-		if len(line) == 0 {
-			continue
-		}
+		mut line := readLineFromFile(f)
 		if !strings::HasPrefix(line, `IR version: [`) {
 			continue
 		}
