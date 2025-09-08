@@ -2,14 +2,11 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
+use "std/bufio"
 use "std/io"
 use "std/jule/dist"
 use "std/os"
 use "std/strings"
-
-cpp type char: byte
-
-cpp fn system(cmd: *cpp.char): int
 
 struct Dist {
 	os:   str
@@ -34,45 +31,21 @@ let Dists: [...]Dist = [
 	{os: dist::Darwin, arch: dist::ARM64},
 ]
 
-fn system(cmd: str): int {
-	ret unsafe { cpp.system((*cpp.char)(&cmd[0])) }
-}
-
-// Calls "system" and exits program if returns non-zero.
-fn systemE(cmd: str) {
-	const ExitCode = 1
-	if system(cmd) != 0 {
-		os::Exit(ExitCode)
-	}
-}
-
-fn readLineFromFile(mut f: &os::File): str {
-	let mut line = make([]byte, 0, 100)
-	let mut b: []byte = [0]
-	for b[0] != '\n' {
-		let n = f.Read(b) else {
-			println("file cannot read")
-			os::Exit(1)
-			use 0 // Avoid error.
-		}
-		if n == 0 {
-			break
-		}
-		line = append(line, b...)
-	}
-	ret strings::TrimRight(str(line), "\b\r\t\n\v ")
-}
-
-fn updateIncludePaths(x: str) {
-	let mut f = os::OpenFile(x, os::O_RDWR, 0o660) else {
-		println("file cannot open: " + x)
+fn updateIncludePaths(targetPath: str) {
+	mut f := os::OpenFile(targetPath, os::O_RDWR, 0o660) else {
+		println("file cannot open: " + targetPath)
 		os::Exit(1)
 		ret // Avoid error.
 	}
 
-	let mut includeSaw = 0
+	mut scan := bufio::Scanner.New(f)
+	mut includeSaw := 0
 	for {
-		let mut line = readLineFromFile(f)
+		ok := scan.Scan()!
+		if !ok {
+			break
+		}
+		mut line := strings::TrimSpace(scan.Text())
 		if len(line) == 0 {
 			continue
 		}
@@ -91,10 +64,10 @@ fn updateIncludePaths(x: str) {
 
 		f.Seek(i64(-len(line))-1, io::SeekCurrent)!
 
-		let lineLen = len(line)
+		lineLen := len(line)
 
 		const SearchSubs = "/jule/"
-		let pos = strings::Index(line, SearchSubs)
+		pos := strings::Index(line, SearchSubs)
 
 		// Remove root directories.
 		line = line[pos+len(SearchSubs):]
@@ -112,48 +85,38 @@ fn generateIrs() {
 	const PATH_PACKAGE = "./src/julec"
 
 	for _, dist in Dists {
-		let x = str(dist.os) + "-" + str(dist.arch)
-		let xp = `./dist/` + x + `.cpp`
+		target := str(dist.os) + "-" + str(dist.arch)
+		targetPath := `./dist/` + target + `.cpp`
 
-		let mut cmd = PATH_JULEC + " build -pt --opt L1 "
-		cmd += "--target " + x + " "
-		cmd += PATH_PACKAGE
-
-		systemE(cmd)
-		systemE(`mv ./dist/ir.cpp ` + xp)
-		updateIncludePaths(xp)
+		runCommand(PATH_JULEC, "build", "-pt", "--opt", "L2", "--target", target, PATH_PACKAGE)
+		runCommand("mv", "./dist/ir.cpp", targetPath)
+		updateIncludePaths(targetPath)
 	}
 }
 
 fn setupJulecIr() {
 	const URL = "https://github.com/julelang/julec-ir"
-	systemE("git clone --depth 1 " + URL) // Clone JuleC-IR repository.
-	systemE("rm -rf julec-ir/src")        // Remove sources.
-	systemE("mkdir julec-ir/src")         // Create new source directory.
+	runCommand("git", "clone", "--depth", "1", URL) // Clone JuleC-IR repository.
+	runCommand("rm", "-rf", "julec-ir/src")         // Remove sources.
+	runCommand("mkdir", "julec-ir/src")             // Create new source directory.
 }
 
 fn moveIrsIntoJulecIr() {
 	for _, dist in Dists {
-		let x = str(dist.os) + "-" + str(dist.arch)
-		let xp = x + `.cpp`
-		systemE(`mv ./dist/` + xp + ` ./julec-ir/src/` + xp)
+		target := str(dist.os) + "-" + str(dist.arch)
+		targetPath := target + `.cpp`
+		runCommand("mv", "./dist/"+targetPath, "./julec-ir/src/"+targetPath)
 	}
 }
 
 fn cleanup() {
-	systemE("rm -rf ./dist")     // Remove dist directory.
-	systemE("rm -rf ./julec-ir") // Remove JuleC-IR clone.
+	runCommand("rm", "-rf", "./dist")     // Remove dist directory.
+	runCommand("rm", "-rf", "./julec-ir") // Remove JuleC-IR clone.
 }
 
 fn getLastCommitHash(): str {
-	systemE(`git rev-parse HEAD > output.txt`)
-	let bytes = os::ReadFile("output.txt") else {
-		println("commit has cannot readed")
-		os::Exit(1)
-		use nil // Avoid error.
-	}
-	os::Remove("output.txt")!
-	ret strings::TrimRight(str(bytes), "\n\t\r\b\v ")
+	output := runCommandWithOutput("git", "rev-parse", "HEAD")
+	ret strings::TrimRight(str(output), "\n\t\r\b\v ")
 }
 
 fn setLatestHash() {
@@ -164,23 +127,31 @@ fn updateReadmeCommit() {
 	const UrlTree = `https://github.com/julelang/jule/tree/`
 	const ReadmePath = `./julec-ir/README.md`
 
-	let mut f = os::OpenFile(ReadmePath, os::O_RDWR, 0o660) else {
+	mut f := os::OpenFile(ReadmePath, os::O_RDWR, 0o660) else {
 		println("file cannot open: " + ReadmePath)
 		os::Exit(1)
 		ret // Avoid error.
 	}
 
+	mut scan := bufio::Scanner.New(f)
 	for {
-		let mut line = readLineFromFile(f)
+		ok := scan.Scan()!
+		if !ok {
+			break
+		}
+		mut line := strings::TrimSpace(scan.Text())
+		if len(line) == 0 {
+			continue
+		}
 		if !strings::HasPrefix(line, `IR version: [`) {
 			continue
 		}
 
 		f.Seek(i64(-len(line))-1, io::SeekCurrent)!
 
-		let lineLen = len(line)
+		lineLen := len(line)
 
-		let commitHash = LatestHash
+		commitHash := LatestHash
 		line = "IR version: [`" + commitHash[:10] + "`](" + UrlTree + commitHash + ")"
 		line += strings::Repeat(" ", lineLen-len(line))
 		line += "\n"
@@ -197,14 +168,45 @@ fn pushChanges() {
 		os::Exit(1)
 	}
 
-	systemE(`git add . || true`)
-	systemE(`git commit -am "update IRs to commit: ` + LatestHash + `" || true`)
-	systemE(`git push || true`)
+	runCommandTry("git", "add", ".")
+	runCommandTry("git", "commit", "-am", "update IRs to commit: "+LatestHash)
+	runCommandTry("git", "push")
 
 	os::Chdir("..") else {
 		println("working path cannot changed")
 		os::Exit(1)
 	}
+}
+
+// Runs command and exits program if returns non-zero.
+fn runCommand(cmd: str, mut args: ...str) {
+	ok := runCommandTry(cmd, args...)
+	if !ok {
+		os::Exit(1)
+	}
+}
+
+fn runCommandTry(cmd: str, mut args: ...str): bool {
+	ocmd := os::Cmd.New(cmd, args...)
+	ocmd.Stdout(os::Stdout())!
+	ocmd.Stderr(os::Stderr())!
+	ocmd.Start()!
+	r := ocmd.Wait()!
+	ret r == 0
+}
+
+// Same as runCommand but reads output from stdout.
+fn runCommandWithOutput(cmd: str, mut args: ...str): []byte {
+	ocmd := os::Cmd.New(cmd, args...)
+	mut pipe := ocmd.StdoutPipe()!
+	ocmd.Start()!
+	mut bytes := io::ReadAll(pipe)!
+	r := ocmd.Wait()!
+	const ExitCode = 1
+	if r != 0 {
+		os::Exit(ExitCode)
+	}
+	ret bytes
 }
 
 fn main() {
