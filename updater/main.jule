@@ -115,7 +115,7 @@ fn generateIrs() {
 		let x = str(dist.os) + "-" + str(dist.arch)
 		let xp = `./dist/` + x + `.cpp`
 
-		let mut cmd = PATH_JULEC + " -pt --opt L1 "
+		let mut cmd = PATH_JULEC + " build -pt --opt L1 "
 		cmd += "--target " + x + " "
 		cmd += PATH_PACKAGE
 
