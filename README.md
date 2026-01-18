@@ -1,4 +1,4 @@
-# JuleC IR
+# julec IR
 
 IR version: [`49f06041e2`](https://github.com/julelang/jule/tree/49f06041e296d0e360ddfd88a563d3889b1316a0)
 
