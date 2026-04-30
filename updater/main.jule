@@ -35,14 +35,16 @@ async fn readLineFromFile(mut f: &os::File): str {
 	let mut b: []byte = [0]
 	for b[0] != '\n' {
 		n := f.Read(b).await else {
+			if error == io::EOF {
+				break
+			}
 			println("file cannot read")
 			os::Exit(1)
 			use 0 // Avoid error.
 		}
-		if n == io::EOF || n == 0 {
-			break
+		if n > 1 {
+			line = append(line, b...)
 		}
-		line = append(line, b...)
 	}
 	ret strings::TrimRight(str(line), "\b\r\t\n\v ")
 }
