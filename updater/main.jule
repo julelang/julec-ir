@@ -42,9 +42,10 @@ async fn readLineFromFile(mut f: &os::File): str {
 			os::Exit(1)
 			use 0 // Avoid error.
 		}
-		if n > 1 {
-			line = append(line, b...)
+		if n == 0 {
+			break
 		}
+		line = append(line, b[:n]...)
 	}
 	ret strings::TrimRight(str(line), "\b\r\t\n\v ")
 }
