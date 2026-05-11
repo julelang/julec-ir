@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD 3-Clause
 // license that can be found in the LICENSE file.
 
-use "std/bufio"
 use "std/io"
 use "std/jule/dist"
 use "std/os"
@@ -13,7 +12,7 @@ struct Dist {
 	arch: str
 }
 
-let mut LatestHash: str = ""
+let mut latestHash: str = ""
 
 let Dists: [...]Dist = [
 	// Windows
@@ -31,12 +30,24 @@ let Dists: [...]Dist = [
 	{os: dist::Darwin, arch: dist::ARM64},
 ]
 
-async fn readline(mut scan: &bufio::Scanner): str {
-	ok := scan.Scan().await else { use false }
-	if !ok {
-		ret ""
+async fn readLineFromFile(mut f: &os::File): str {
+	mut line := make([]byte, 0, 100)
+	let mut b: []byte = [0]
+	for b[0] != '\n' {
+		n := f.Read(b).await else {
+			if error == io::EOF {
+				break
+			}
+			println("file cannot read")
+			os::Exit(1)
+			use 0 // Avoid error.
+		}
+		if n == 0 {
+			break
+		}
+		line = append(line, b[:n]...)
 	}
-	ret strings::TrimRight(scan.Text(), "\b\r\t\n\v")
+	ret strings::TrimRight(str(line), "\b\r\t\n\v ")
 }
 
 async fn updateIncludePaths(targetPath: str) {
@@ -47,9 +58,8 @@ async fn updateIncludePaths(targetPath: str) {
 	}
 
 	mut includeSaw := 0
-	mut scan := bufio::Scanner.New(f)
 	for {
-		mut line := readline(scan).await
+		mut line := readLineFromFile(f).await
 		if len(line) == 0 {
 			continue
 		}
@@ -79,12 +89,12 @@ async fn updateIncludePaths(targetPath: str) {
 		line += strings::Repeat(" ", lineLen-len(line))
 		line += "\n"
 
-		f.WriteStr(line).await!
+		f.Write(([]byte)(line)).await!
 	}
 	f.Close().await!
 }
 
-async fn generateIrs() {
+async fn generateIRs() {
 	const PATH_JULEC = "./bin/julec"
 	const PATH_PACKAGE = "./src/julec"
 
@@ -98,14 +108,14 @@ async fn generateIrs() {
 	}
 }
 
-fn setupJulecIr() {
+fn setupJulecIR() {
 	const URL = "https://github.com/julelang/julec-ir"
-	runCommand("git", "clone", "--depth", "1", URL) // Clone julec-IR repository.
+	runCommand("git", "clone", "--depth", "1", URL) // Clone JuleC-IR repository.
 	runCommand("rm", "-rf", "julec-ir/src")         // Remove sources.
 	runCommand("mkdir", "julec-ir/src")             // Create new source directory.
 }
 
-fn moveIrsIntoJulecIr() {
+fn moveIRsIntoJulecIR() {
 	for _, dist in Dists {
 		target := str(dist.os) + "-" + str(dist.arch)
 		targetPath := target + `.cpp`
@@ -115,7 +125,7 @@ fn moveIrsIntoJulecIr() {
 
 fn cleanup() {
 	runCommand("rm", "-rf", "./dist")     // Remove dist directory.
-	runCommand("rm", "-rf", "./julec-ir") // Remove julec-IR clone.
+	runCommand("rm", "-rf", "./julec-ir") // Remove JuleC-IR clone.
 }
 
 async fn getLastCommitHash(): str {
@@ -124,10 +134,10 @@ async fn getLastCommitHash(): str {
 }
 
 async fn setLatestHash() {
-	LatestHash = getLastCommitHash().await
+	latestHash = getLastCommitHash().await
 }
 
-async fn updateReadmeCommit() {
+async fn updateREADMECommit() {
 	const UrlTree = `https://github.com/julelang/jule/tree/`
 	const ReadmePath = `./julec-ir/README.md`
 
@@ -137,9 +147,8 @@ async fn updateReadmeCommit() {
 		ret // Avoid error.
 	}
 
-	mut scan := bufio::Scanner.New(f)
 	for {
-		mut line := readline(scan).await
+		mut line := readLineFromFile(f).await
 		if !strings::HasPrefix(line, `IR version: [`) {
 			continue
 		}
@@ -148,12 +157,12 @@ async fn updateReadmeCommit() {
 
 		lineLen := len(line)
 
-		commitHash := LatestHash
+		commitHash := latestHash
 		line = "IR version: [`" + commitHash[:10] + "`](" + UrlTree + commitHash + ")"
 		line += strings::Repeat(" ", lineLen-len(line))
 		line += "\n"
 
-		f.WriteStr(line).await!
+		f.Write(([]byte)(line)).await!
 		break
 	}
 	f.Close().await!
@@ -166,7 +175,7 @@ fn pushChanges() {
 	}
 
 	runCommandTry("git", "add", ".")
-	runCommandTry("git", "commit", "-am", "update IRs to commit: "+LatestHash)
+	runCommandTry("git", "commit", "-am", "update IRs to commit: "+latestHash)
 	runCommandTry("git", "push")
 
 	os::Chdir("..") else {
@@ -208,10 +217,10 @@ async fn runCommandWithOutput(cmd: str, mut args: ...str): []byte {
 
 async fn main() {
 	setLatestHash().await
-	generateIrs().await
-	setupJulecIr()
-	moveIrsIntoJulecIr()
-	updateReadmeCommit().await
+	generateIRs().await
+	setupJulecIR()
+	moveIRsIntoJulecIR()
+	updateREADMECommit().await
 	pushChanges()
 	cleanup()
 }
