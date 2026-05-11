@@ -6,5 +6,4 @@ IR version: [`acb94e0eb9`](https://github.com/julelang/jule/tree/acb94e0eb9803f5
 
 ## License
 
-The JuleC and standard library is distributed under the terms of the BSD 3-Clause license. \
-[See License Details](./LICENSE)
+The JuleC and standIR version: [`6125cccdf8`](https://github.com/julelang/jule/tree/6125cccdf80e705328198a5d65d807849a51bcb2)
