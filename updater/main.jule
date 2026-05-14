@@ -9,26 +9,27 @@ use "std/strings"
 use "std/unsafe"
 
 struct Dist {
-	os:   str
-	arch: str
+	os:      str
+	arch:    str
+	release: bool
 }
 
 let mut latestHash: str = ""
 
 let Dists: [...]Dist = [
 	// Windows
-	{os: dist::Windows, arch: dist::AMD64},
-	{os: dist::Windows, arch: dist::I386},
-	{os: dist::Windows, arch: dist::ARM64},
+	{os: dist::Windows, arch: dist::AMD64, release: true},
+	{os: dist::Windows, arch: dist::I386, release: false},
+	{os: dist::Windows, arch: dist::ARM64, release: true},
 
 	// Linux
-	{os: dist::Linux, arch: dist::AMD64},
-	{os: dist::Linux, arch: dist::I386},
-	{os: dist::Linux, arch: dist::ARM64},
+	{os: dist::Linux, arch: dist::AMD64, release: true},
+	{os: dist::Linux, arch: dist::I386, release: false},
+	{os: dist::Linux, arch: dist::ARM64, release: true},
 
 	// Darwin
-	{os: dist::Darwin, arch: dist::AMD64},
-	{os: dist::Darwin, arch: dist::ARM64},
+	{os: dist::Darwin, arch: dist::AMD64, release: true},
+	{os: dist::Darwin, arch: dist::ARM64, release: true},
 ]
 
 async fn readLineFromFile(mut f: &os::File): str {
@@ -57,6 +58,7 @@ async fn updateIncludePaths(targetPath: str) {
 		os::Exit(1)
 		ret // Avoid error.
 	}
+	defer { f.Close().await! }
 
 	mut includeSaw := 0
 	for {
@@ -90,9 +92,8 @@ async fn updateIncludePaths(targetPath: str) {
 		line += strings::Repeat(" ", lineLen-len(line))
 		line += "\n"
 
-		f.Write(([]byte)(line)).await!
+		f.WriteStr(line).await!
 	}
-	f.Close().await!
 }
 
 async fn generateMeta(targetPath: str, target: str, dist: Dist) {
@@ -101,6 +102,7 @@ async fn generateMeta(targetPath: str, target: str, dist: Dist) {
 		os::Exit(1)
 		ret // Avoid error.
 	}
+	defer { f.Close().await! }
 
 	let mut line: str
 	for {
@@ -114,7 +116,6 @@ async fn generateMeta(targetPath: str, target: str, dist: Dist) {
 		line = line[3:] // trim "// "
 		break
 	}
-	f.Close().await!
 
 	// Update compiler.
 	match {
@@ -153,7 +154,7 @@ async fn generateMeta(targetPath: str, target: str, dist: Dist) {
 		line = line[:firstSep] + " -static" + line[firstSep:]
 	}
 
-	metapath := "./" + target + ".txt"
+	metapath := "./julec-ir/meta/" + target + ".txt"
 	os::WriteFile(metapath, unsafe::BytesFromStr(line), 0660).await else {
 		println("metafile cannot generated: " + targetPath)
 		os::Exit(1)
@@ -166,12 +167,14 @@ async fn generateIRs() {
 
 	for _, dist in Dists {
 		target := str(dist.os) + "-" + str(dist.arch)
-		targetPath := `./dist/` + target + `.cpp`
+		targetPath := `./julec-ir/src/` + target + `.cpp`
 
 		runCommand(PATH_JULEC, "build", "-pt", "--opt", "L2", "--target", target, PATH_PACKAGE)
 		runCommand("mv", "./dist/ir.cpp", targetPath)
 		updateIncludePaths(targetPath).await
-		generateMeta(targetPath, target, dist).await
+		if dist.release {
+			generateMeta(targetPath, target, dist).await
+		}
 	}
 }
 
@@ -180,16 +183,6 @@ fn setupJulecIR() {
 	runCommand("git", "clone", "--depth", "1", URL) // Clone JuleC-IR repository.
 	runCommand("rm", "-rf", "julec-ir/src")         // Remove sources.
 	runCommand("mkdir", "julec-ir/src")             // Create new source directory.
-}
-
-fn moveIRsIntoJulecIR() {
-	for _, dist in Dists {
-		target := str(dist.os) + "-" + str(dist.arch)
-		targetPath := target + `.cpp`
-		metaPath := target + ".txt"
-		runCommand("mv", "./dist/"+targetPath, "./julec-ir/src/"+targetPath)
-		runCommand("mv", "./"+metaPath, "./julec-ir/meta/"+metaPath)
-	}
 }
 
 fn cleanup() {
@@ -215,6 +208,7 @@ async fn updateREADMECommit() {
 		os::Exit(1)
 		ret // Avoid error.
 	}
+	defer { f.Close().await! }
 
 	for {
 		mut line := readLineFromFile(f).await
@@ -231,10 +225,9 @@ async fn updateREADMECommit() {
 		line += strings::Repeat(" ", lineLen-len(line))
 		line += "\n"
 
-		f.Write(([]byte)(line)).await!
+		f.WriteStr(line).await!
 		break
 	}
-	f.Close().await!
 }
 
 fn pushChanges() {
@@ -286,9 +279,8 @@ async fn runCommandWithOutput(cmd: str, mut args: ...str): []byte {
 
 async fn main() {
 	setLatestHash().await
-	generateIRs().await
 	setupJulecIR()
-	moveIRsIntoJulecIR()
+	generateIRs().await
 	updateREADMECommit().await
 	pushChanges()
 	cleanup()
