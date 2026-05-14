@@ -6,6 +6,7 @@ use "std/io"
 use "std/jule/dist"
 use "std/os"
 use "std/strings"
+use "std/unsafe"
 
 struct Dist {
 	os:   str
@@ -94,6 +95,64 @@ async fn updateIncludePaths(targetPath: str) {
 	f.Close().await!
 }
 
+async fn generateMeta(targetPath: str, target: str, dist: Dist) {
+	mut f := os::OpenFile(targetPath, os::O_RDWR, 0o660) else {
+		println("file cannot open: " + targetPath)
+		os::Exit(1)
+		ret // Avoid error.
+	}
+
+	let mut line: str
+	for {
+		line = readLineFromFile(f).await
+		if !strings::HasPrefix(line, "//") {
+			break
+		}
+		if !strings::HasPrefix(line, `// clang++`) {
+			continue
+		}
+		line = line[3:] // trim "// "
+		break
+	}
+	f.Close().await!
+
+	// Update compiler.
+	match {
+	| dist::IsWindows(dist.os):
+		match {
+		| dist::IsAMD64(dist.arch):
+			line = strings::Replace(line, "clang++", "x86_64-w64-mingw32-clang++", 1)
+		}
+	| dist::IsDarwin(dist.os):
+		match {
+		| dist::IsAMD64(dist.arch):
+			line = strings::Replace(line, "clang++", "clang++ -arch x86_64", 1)
+		}
+	}
+
+	// Update IR source code.
+	match {
+	| dist::IsUnix(dist.os):
+		line = strings::Replace(line, "dist/ir.cpp", "ir.cpp", 1)
+	| dist::IsWindows(dist.os):
+		line = strings::Replace(line, "dist\\ir.cpp", "ir.cpp", 1)
+	}
+
+	// Update the output path.
+	match {
+	| dist::IsUnix(dist.os):
+		line = strings::Replace(line, "-o main", "-o ./bin/julec", 1)
+	| dist::IsWindows(dist.os):
+		line = strings::Replace(line, "-o main.exe", "-o .\\bin\\julec.exe", 1)
+	}
+
+	metapath := "./meta/" + target + ".txt"
+	os::WriteFile(metapath, unsafe::BytesFromStr(line), 0660).await else {
+		println("metafile cannot generated: " + targetPath)
+		os::Exit(1)
+	}
+}
+
 async fn generateIRs() {
 	const PATH_JULEC = "./bin/julec"
 	const PATH_PACKAGE = "./src/julec"
@@ -105,6 +164,7 @@ async fn generateIRs() {
 		runCommand(PATH_JULEC, "build", "-pt", "--opt", "L2", "--target", target, PATH_PACKAGE)
 		runCommand("mv", "./dist/ir.cpp", targetPath)
 		updateIncludePaths(targetPath).await
+		generateMeta(targetPath, target, dist).await
 	}
 }
 
