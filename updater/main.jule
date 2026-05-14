@@ -146,7 +146,14 @@ async fn generateMeta(targetPath: str, target: str, dist: Dist) {
 		line = strings::Replace(line, "-o main.exe", "-o .\\bin\\julec.exe", 1)
 	}
 
-	metapath := "./meta/" + target + ".txt"
+	firstSep := strings::IndexByte(line, ' ')
+
+	// Enable static linking.
+	if dist::IsWindows(dist.os) || dist::IsLinux(dist.os) {
+		line = line[:firstSep] + " -static" + line[firstSep:]
+	}
+
+	metapath := "./" + target + ".txt"
 	os::WriteFile(metapath, unsafe::BytesFromStr(line), 0660).await else {
 		println("metafile cannot generated: " + targetPath)
 		os::Exit(1)
@@ -179,7 +186,9 @@ fn moveIRsIntoJulecIR() {
 	for _, dist in Dists {
 		target := str(dist.os) + "-" + str(dist.arch)
 		targetPath := target + `.cpp`
+		metaPath := target + ".txt"
 		runCommand("mv", "./dist/"+targetPath, "./julec-ir/src/"+targetPath)
+		runCommand("mv", "./"+metaPath, "./julec-ir/meta/"+metaPath)
 	}
 }
 
