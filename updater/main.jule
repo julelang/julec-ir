@@ -133,10 +133,11 @@ async fn generateMeta(targetPath: str, target: str, dist: Dist) {
 
 	// Update IR source code.
 	match {
-	| dist::IsUnix(dist.os):
-		line = strings::Replace(line, "dist/ir.cpp", "ir.cpp", 1)
 	| dist::IsWindows(dist.os):
 		line = strings::Replace(line, "dist\\ir.cpp", "ir.cpp", 1)
+		fall
+	| dist::IsUnix(dist.os):
+		line = strings::Replace(line, "dist/ir.cpp", "ir.cpp", 1)
 	}
 
 	// Update the output path.
