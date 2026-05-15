@@ -9,12 +9,12 @@ use "std/strings"
 use "std/unsafe"
 
 struct Dist {
-	os:      str
-	arch:    str
+	os:      string
+	arch:    string
 	release: bool
 }
 
-let mut latestHash: str = ""
+let mut latestHash: string = ""
 
 let Dists: [...]Dist = [
 	// Windows
@@ -32,7 +32,7 @@ let Dists: [...]Dist = [
 	{os: dist::Darwin, arch: dist::ARM64, release: true},
 ]
 
-async fn readLineFromFile(mut f: &os::File): str {
+async fn readLineFromFile(mut f: &os::File): string {
 	mut line := make([]byte, 0, 100)
 	let mut b: []byte = [0]
 	for b[0] != '\n' {
@@ -49,10 +49,10 @@ async fn readLineFromFile(mut f: &os::File): str {
 		}
 		line = append(line, b[:n]...)
 	}
-	ret strings::TrimRight(str(line), "\b\r\t\n\v ")
+	ret strings::TrimRight(string(line), "\b\r\t\n\v ")
 }
 
-async fn updateIncludePaths(targetPath: str) {
+async fn updateIncludePaths(targetPath: string) {
 	mut f := os::OpenFile(targetPath, os::O_RDWR, 0o660) else {
 		println("file cannot open: " + targetPath)
 		os::Exit(1)
@@ -96,7 +96,7 @@ async fn updateIncludePaths(targetPath: str) {
 	}
 }
 
-async fn generateMeta(targetPath: str, target: str, dist: Dist) {
+async fn generateMeta(targetPath: string, target: string, dist: Dist) {
 	mut f := os::OpenFile(targetPath, os::O_RDWR, 0o660) else {
 		println("file cannot open: " + targetPath)
 		os::Exit(1)
@@ -104,7 +104,7 @@ async fn generateMeta(targetPath: str, target: str, dist: Dist) {
 	}
 	defer { f.Close().await! }
 
-	let mut line: str
+	let mut line: string
 	for {
 		line = readLineFromFile(f).await
 		if !strings::HasPrefix(line, "//") {
@@ -167,7 +167,7 @@ async fn generateIRs() {
 	const PATH_PACKAGE = "./src/julec"
 
 	for _, dist in Dists {
-		target := str(dist.os) + "-" + str(dist.arch)
+		target := string(dist.os) + "-" + string(dist.arch)
 		targetPath := `./julec-ir/src/` + target + `.cpp`
 
 		runCommand(PATH_JULEC, "build", "-pt", "--opt", "L2", "--target", target, PATH_PACKAGE)
@@ -191,9 +191,9 @@ fn cleanup() {
 	runCommand("rm", "-rf", "./julec-ir") // Remove JuleC-IR clone.
 }
 
-async fn getLastCommitHash(): str {
+async fn getLastCommitHash(): string {
 	output := runCommandWithOutput("git", "rev-parse", "HEAD").await
-	ret strings::TrimRight(str(output), "\n\t\r\b\v ")
+	ret strings::TrimRight(string(output), "\n\t\r\b\v ")
 }
 
 async fn setLatestHash() {
@@ -248,14 +248,14 @@ fn pushChanges() {
 }
 
 // Runs command and exits program if returns non-zero.
-fn runCommand(cmd: str, mut args: ...str) {
+fn runCommand(cmd: string, mut args: ...string) {
 	ok := runCommandTry(cmd, args...)
 	if !ok {
 		os::Exit(1)
 	}
 }
 
-fn runCommandTry(cmd: str, mut args: ...str): bool {
+fn runCommandTry(cmd: string, mut args: ...string): bool {
 	ocmd := os::Cmd.New(cmd, args...)
 	ocmd.Stdout(os::Stdout())!
 	ocmd.Stderr(os::Stderr())!
@@ -265,7 +265,7 @@ fn runCommandTry(cmd: str, mut args: ...str): bool {
 }
 
 // Same as runCommand but reads output from stdout.
-async fn runCommandWithOutput(cmd: str, mut args: ...str): []byte {
+async fn runCommandWithOutput(cmd: string, mut args: ...string): []byte {
 	ocmd := os::Cmd.New(cmd, args...)
 	mut pipe := ocmd.StdoutPipe()!
 	ocmd.Start()!
