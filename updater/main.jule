@@ -49,14 +49,14 @@ async fn readLineFromFile(mut f: &os::File): string {
 		}
 		line = append(line, b[:n]...)
 	}
-	ret strings::TrimRight(string(line), "\b\r\t\n\v ")
+	return strings::TrimRight(string(line), "\b\r\t\n\v ")
 }
 
 async fn updateIncludePaths(targetPath: string) {
 	mut f := os::OpenFile(targetPath, os::O_RDWR, 0o660) else {
 		println("file cannot open: " + targetPath)
 		os::Exit(1)
-		ret // Avoid error.
+		return // Avoid error.
 	}
 	defer { f.Close().await! }
 
@@ -100,7 +100,7 @@ async fn generateMeta(targetPath: string, target: string, dist: Dist) {
 	mut f := os::OpenFile(targetPath, os::O_RDWR, 0o660) else {
 		println("file cannot open: " + targetPath)
 		os::Exit(1)
-		ret // Avoid error.
+		return // Avoid error.
 	}
 	defer { f.Close().await! }
 
@@ -193,7 +193,7 @@ fn cleanup() {
 
 async fn getLastCommitHash(): string {
 	output := runCommandWithOutput("git", "rev-parse", "HEAD").await
-	ret strings::TrimRight(string(output), "\n\t\r\b\v ")
+	return strings::TrimRight(string(output), "\n\t\r\b\v ")
 }
 
 async fn setLatestHash() {
@@ -207,7 +207,7 @@ async fn updateREADMECommit() {
 	mut f := os::OpenFile(ReadmePath, os::O_RDWR, 0o660) else {
 		println("file cannot open: " + ReadmePath)
 		os::Exit(1)
-		ret // Avoid error.
+		return // Avoid error.
 	}
 	defer { f.Close().await! }
 
@@ -261,7 +261,7 @@ fn runCommandTry(cmd: string, mut args: ...string): bool {
 	ocmd.Stderr(os::Stderr())!
 	ocmd.Start()!
 	r := ocmd.Wait()!
-	ret r == 0
+	return r == 0
 }
 
 // Same as runCommand but reads output from stdout.
@@ -275,7 +275,7 @@ async fn runCommandWithOutput(cmd: string, mut args: ...string): []byte {
 	if r != 0 {
 		os::Exit(ExitCode)
 	}
-	ret bytes
+	return bytes
 }
 
 async fn main() {
