@@ -1,6 +1,6 @@
 # julec IR
 
-IR version: [`bb9cdeca11`](https://github.com/julelang/jule/tree/bb9cdeca11bbe688cb19c8028e6523972376df4d)
+IR version: [`760e5df499`](https://github.com/julelang/jule/tree/760e5df499e1fe87924433405cc8697f2a1c3bbe)
 
 [See more information](https://manual.jule.dev/getting-started/installation/compiling-from-source/compile-from-ir)
 
