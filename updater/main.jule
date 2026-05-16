@@ -92,7 +92,7 @@ async fn updateIncludePaths(targetPath: string) {
 		line += strings::Repeat(" ", lineLen-len(line))
 		line += "\n"
 
-		f.WriteStr(line).await!
+		f.WriteString(line).await!
 	}
 }
 
@@ -156,7 +156,7 @@ async fn generateMeta(targetPath: string, target: string, dist: Dist) {
 	}
 
 	metapath := "./julec-ir/meta/" + target + ".txt"
-	os::WriteFile(metapath, unsafe::BytesFromStr(line), 0660).await else {
+	os::WriteFile(metapath, unsafe::BytesFromString(line), 0660).await else {
 		println("metafile cannot generated: " + targetPath)
 		os::Exit(1)
 	}
@@ -226,7 +226,7 @@ async fn updateREADMECommit() {
 		line += strings::Repeat(" ", lineLen-len(line))
 		line += "\n"
 
-		f.WriteStr(line).await!
+		f.WriteString(line).await!
 		break
 	}
 }
