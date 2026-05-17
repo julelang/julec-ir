@@ -140,13 +140,13 @@ function main() {
 	fi
 	get_compile_command
 	$ret
-	if [ -f "ir.cpp" ]; then
-		rm ir.cpp
-	fi
 	if [[ $? == 0 ]]; then
 		log "your Jule compiler is ready to use"
 	else
-		panic "compilation failed"
+		panic "compilation failed, check errors above"
+	fi
+	if [ -f "ir.cpp" ]; then
+		rm ir.cpp
 	fi
 }
 
