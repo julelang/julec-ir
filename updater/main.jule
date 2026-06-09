@@ -27,9 +27,9 @@ let Dists: [...]Dist = [
 	{os: dist::Linux, arch: dist::I386, release: false},
 	{os: dist::Linux, arch: dist::ARM64, release: true},
 
-	// Darwin
-	{os: dist::Darwin, arch: dist::AMD64, release: true},
-	{os: dist::Darwin, arch: dist::ARM64, release: true},
+	// macOS
+	{os: dist::MacOS, arch: dist::AMD64, release: true},
+	{os: dist::MacOS, arch: dist::ARM64, release: true},
 ]
 
 async fn readLineFromFile(mut f: &os::File): string {
