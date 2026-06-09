@@ -11,7 +11,7 @@ declare arch_arm64=2
 
 declare os_windows=0
 declare os_linux=1
-declare os_darwin=2
+declare os_macos=2
 
 declare arch=$unknown
 declare os=$unknown
@@ -46,7 +46,7 @@ function init_os() {
 	if [[ "$OSTYPE" == "linux-gnu" ]]; then
 		os=$os_linux
 	elif [[ "$OSTYPE" == "darwin"* ]]; then
-		os=$os_darwin
+		os=$os_macos
 	elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" || "$OSTYPE" == "cygwin" ]]; then
 		os=$os_windows
 	else
@@ -57,8 +57,8 @@ function init_os() {
 function get_os_string() {
 	if [[ $os == $os_linux ]]; then
 		ret="linux"
-	elif [[ $os == $os_darwin ]]; then
-		ret="darwin"
+	elif [[ $os == $os_macos ]]; then
+		ret="macos"
 	elif [[ $os == $os_windows ]]; then
 		ret="windows"
 	else
@@ -91,7 +91,7 @@ function check_target() {
 		return
 	elif [[ $target == "linux-i386" || $target == "linux-amd64" || $target == "linux-arm64" ]]; then
 		return
-	elif [[ $target == "darwin-amd64" || $target == "darwin-arm64" ]]; then
+	elif [[ $target == "macos-amd64" || $target == "macos-arm64" ]]; then
 		return
 	else
 		panic "your system configuration is not supported: $target"
