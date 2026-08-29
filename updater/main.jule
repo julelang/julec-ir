@@ -260,7 +260,7 @@ fn runCommandTry(cmd: string, mut args: ...string): bool {
 	ocmd.Stdout(os::Stdout())!
 	ocmd.Stderr(os::Stderr())!
 	ocmd.Start()!
-	r := ocmd.Wait()!
+	r := ocmd.WaitBlocking()!
 	return r == 0
 }
 
@@ -270,7 +270,7 @@ async fn runCommandWithOutput(cmd: string, mut args: ...string): []byte {
 	mut pipe := ocmd.StdoutPipe()!
 	ocmd.Start()!
 	mut bytes := io::ReadAll(pipe).await!
-	r := ocmd.Wait()!
+	r := ocmd.Wait().await!
 	const ExitCode = 1
 	if r != 0 {
 		os::Exit(ExitCode)
