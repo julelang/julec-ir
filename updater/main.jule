@@ -32,11 +32,11 @@ let Dists: [...]Dist = [
 	{os: dist::MacOS, arch: dist::ARM64, release: true},
 ]
 
-async fn readLineFromFile(mut f: &os::File): string {
+fn readLineFromFile(mut f: &os::File): string {
 	mut line := make([]byte, 0, 100)
 	let mut b: []byte = [0]
 	for b[0] != '\n' {
-		n := f.Read(b).await else {
+		n := f.Read(b) else {
 			if error == io::EOF {
 				break
 			}
@@ -52,17 +52,17 @@ async fn readLineFromFile(mut f: &os::File): string {
 	return strings::TrimRight(string(line), "\b\r\t\n\v ")
 }
 
-async fn updateIncludePaths(targetPath: string) {
+fn updateIncludePaths(targetPath: string) {
 	mut f := os::OpenFile(targetPath, os::O_RDWR, 0o660) else {
 		println("file cannot open: " + targetPath)
 		os::Exit(1)
 		return // Avoid error.
 	}
-	defer { f.Close().await! }
+	defer { f.Close()! }
 
 	mut includeSaw := 0
 	for {
-		mut line := readLineFromFile(f).await
+		mut line := readLineFromFile(f)
 		if len(line) == 0 {
 			continue
 		}
@@ -79,7 +79,7 @@ async fn updateIncludePaths(targetPath: string) {
 			includeSaw++
 		}
 
-		f.Seek(i64(-len(line))-1, io::SeekCurrent).await!
+		f.Seek(i64(-len(line))-1, io::SeekCurrent)!
 
 		lineLen := len(line)
 
@@ -92,21 +92,21 @@ async fn updateIncludePaths(targetPath: string) {
 		line += strings::Repeat(" ", lineLen-len(line))
 		line += "\n"
 
-		f.WriteString(line).await!
+		f.WriteString(line)!
 	}
 }
 
-async fn generateMeta(targetPath: string, target: string, dist: Dist) {
+fn generateMeta(targetPath: string, target: string, dist: Dist) {
 	mut f := os::OpenFile(targetPath, os::O_RDWR, 0o660) else {
 		println("file cannot open: " + targetPath)
 		os::Exit(1)
 		return // Avoid error.
 	}
-	defer { f.Close().await! }
+	defer { f.Close()! }
 
 	let mut line: string
 	for {
-		line = readLineFromFile(f).await
+		line = readLineFromFile(f)
 		if !strings::HasPrefix(line, "//") {
 			break
 		}
@@ -156,13 +156,13 @@ async fn generateMeta(targetPath: string, target: string, dist: Dist) {
 	}
 
 	metapath := "./julec-ir/meta/" + target + ".txt"
-	os::WriteFile(metapath, unsafe::BytesFromString(line), 0660).await else {
+	os::WriteFile(metapath, unsafe::BytesFromString(line), 0660) else {
 		println("metafile cannot generated: " + targetPath)
 		os::Exit(1)
 	}
 }
 
-async fn generateIRs() {
+fn generateIRs() {
 	const PATH_JULEC = "./bin/julec"
 	const PATH_PACKAGE = "./src/julec"
 
@@ -172,9 +172,9 @@ async fn generateIRs() {
 
 		runCommand(PATH_JULEC, "build", "-pt", "--opt", "L2", "--target", target, PATH_PACKAGE)
 		runCommand("mv", "./dist/ir.cpp", targetPath)
-		updateIncludePaths(targetPath).await
+		updateIncludePaths(targetPath)
 		if dist.release {
-			generateMeta(targetPath, target, dist).await
+			generateMeta(targetPath, target, dist)
 		}
 	}
 }
@@ -191,16 +191,16 @@ fn cleanup() {
 	runCommand("rm", "-rf", "./julec-ir") // Remove JuleC-IR clone.
 }
 
-async fn getLastCommitHash(): string {
-	output := runCommandWithOutput("git", "rev-parse", "HEAD").await
+fn getLastCommitHash(): string {
+	output := runCommandWithOutput("git", "rev-parse", "HEAD")
 	return strings::TrimRight(string(output), "\n\t\r\b\v ")
 }
 
-async fn setLatestHash() {
-	latestHash = getLastCommitHash().await
+fn setLatestHash() {
+	latestHash = getLastCommitHash()
 }
 
-async fn updateREADMECommit() {
+fn updateREADMECommit() {
 	const UrlTree = `https://github.com/julelang/jule/tree/`
 	const ReadmePath = `./julec-ir/README.md`
 
@@ -209,15 +209,15 @@ async fn updateREADMECommit() {
 		os::Exit(1)
 		return // Avoid error.
 	}
-	defer { f.Close().await! }
+	defer { f.Close()! }
 
 	for {
-		mut line := readLineFromFile(f).await
+		mut line := readLineFromFile(f)
 		if !strings::HasPrefix(line, `IR version: [`) {
 			continue
 		}
 
-		f.Seek(i64(-len(line))-1, io::SeekCurrent).await!
+		f.Seek(i64(-len(line))-1, io::SeekCurrent)!
 
 		lineLen := len(line)
 
@@ -226,7 +226,7 @@ async fn updateREADMECommit() {
 		line += strings::Repeat(" ", lineLen-len(line))
 		line += "\n"
 
-		f.WriteString(line).await!
+		f.WriteString(line)!
 		break
 	}
 }
@@ -260,17 +260,17 @@ fn runCommandTry(cmd: string, mut args: ...string): bool {
 	ocmd.Stdout(os::Stdout())!
 	ocmd.Stderr(os::Stderr())!
 	ocmd.Start()!
-	r := ocmd.WaitBlocking()!
+	r := ocmd.Wait()!
 	return r == 0
 }
 
 // Same as runCommand but reads output from stdout.
-async fn runCommandWithOutput(cmd: string, mut args: ...string): []byte {
+fn runCommandWithOutput(cmd: string, mut args: ...string): []byte {
 	ocmd := os::Cmd.New(cmd, args...)
 	mut pipe := ocmd.StdoutPipe()!
 	ocmd.Start()!
-	mut bytes := io::ReadAll(pipe).await!
-	r := ocmd.Wait().await!
+	mut bytes := io::ReadAll(pipe)!
+	r := ocmd.Wait()!
 	const ExitCode = 1
 	if r != 0 {
 		os::Exit(ExitCode)
@@ -278,11 +278,11 @@ async fn runCommandWithOutput(cmd: string, mut args: ...string): []byte {
 	return bytes
 }
 
-async fn main() {
-	setLatestHash().await
+fn main() {
+	setLatestHash()
 	setupJulecIR()
-	generateIRs().await
-	updateREADMECommit().await
+	generateIRs()
+	updateREADMECommit()
 	pushChanges()
 	cleanup()
 }
