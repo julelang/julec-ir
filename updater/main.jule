@@ -36,7 +36,7 @@ fn readLineFromFile(mut f: &os::File): string {
 	mut line := make([]byte, 0, 100)
 	let mut b: []byte = [0]
 	for b[0] != '\n' {
-		n := f.Read(b) else {
+		n := f.Read(b) catch {
 			if error == io::EOF {
 				break
 			}
@@ -53,7 +53,7 @@ fn readLineFromFile(mut f: &os::File): string {
 }
 
 fn updateIncludePaths(targetPath: string) {
-	mut f := os::OpenFile(targetPath, os::O_RDWR, 0o660) else {
+	mut f := os::OpenFile(targetPath, os::O_RDWR, 0o660) catch {
 		println("file cannot open: " + targetPath)
 		os::Exit(1)
 		return // Avoid error.
@@ -97,7 +97,7 @@ fn updateIncludePaths(targetPath: string) {
 }
 
 fn generateMeta(targetPath: string, target: string, dist: Dist) {
-	mut f := os::OpenFile(targetPath, os::O_RDWR, 0o660) else {
+	mut f := os::OpenFile(targetPath, os::O_RDWR, 0o660) catch {
 		println("file cannot open: " + targetPath)
 		os::Exit(1)
 		return // Avoid error.
@@ -156,7 +156,7 @@ fn generateMeta(targetPath: string, target: string, dist: Dist) {
 	}
 
 	metapath := "./julec-ir/meta/" + target + ".txt"
-	os::WriteFile(metapath, unsafe::BytesFromString(line), 0660) else {
+	os::WriteFile(metapath, unsafe::BytesFromString(line), 0660) catch {
 		println("metafile cannot generated: " + targetPath)
 		os::Exit(1)
 	}
@@ -204,7 +204,7 @@ fn updateREADMECommit() {
 	const UrlTree = `https://github.com/julelang/jule/tree/`
 	const ReadmePath = `./julec-ir/README.md`
 
-	mut f := os::OpenFile(ReadmePath, os::O_RDWR, 0o660) else {
+	mut f := os::OpenFile(ReadmePath, os::O_RDWR, 0o660) catch {
 		println("file cannot open: " + ReadmePath)
 		os::Exit(1)
 		return // Avoid error.
@@ -232,7 +232,7 @@ fn updateREADMECommit() {
 }
 
 fn pushChanges() {
-	os::Chdir("julec-ir") else {
+	os::Chdir("julec-ir") catch {
 		println("working path cannot changed")
 		os::Exit(1)
 	}
@@ -241,7 +241,7 @@ fn pushChanges() {
 	runCommandTry("git", "commit", "-am", "update IRs to commit: "+latestHash)
 	runCommandTry("git", "push")
 
-	os::Chdir("..") else {
+	os::Chdir("..") catch {
 		println("working path cannot changed")
 		os::Exit(1)
 	}
